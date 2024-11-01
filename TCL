@@ -1,0 +1,52 @@
+create database bd_exporta;
+
+create table departamento (
+	id int primary key auto_increment not null,
+    nome varchar(50) not null,
+    localizacao varchar(50) not null ,
+    orcamento decimal(10,2) not null
+);
+
+insert into departamento (nome, localizacao, orcamento) 
+values	('Vendas', 'São Paulo', 50000.00),
+		('Marketing', 'Rio de Janeiro', 35000.00),
+		('Tecnologia', 'São Paulo', 75000.00),
+		('Recursos Humanos', 'Belo Horizonte', 20000.00),
+		('Financeiro', 'Curitiba', 45000.00),
+		('Atendimento ao Cliente', 'Salvador', 30000.00);
+
+#indica qual o diretório pode ser salvo o .csv
+show variables like 'secure_file_priv';
+
+#Exporta via SQL
+select * from departamento
+into outfile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\depto.csv'
+fields terminated by ',' enclosed by '"'
+lines terminated by '\n';
+
+#apagando colunas da tabela departamento
+delete from departamento where id = '1,2,3,4,5,6';
+
+#Importa arquivo .csv exportado
+load data infile 'C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Uploads\\depto.csv'
+into table departamento
+fields terminated by ',' enclosed by '"'
+lines terminated by '\n'; 
+
+#Início da transação
+start transaction;
+
+#Aumentar o orçamento do departamento de Marketing em 3000
+update departamento set orcamento = orcamento + 3000.00 where nome = 'Marketing';
+
+#Definir um ponto intermediário
+savepoint ajuste_parcial;
+
+#Aumentar o orçamento do departamento de Financeiro em 1000
+update departamento set orcamento = orcamento + 1000.00 where nome = 'Financeiro';
+
+#Reverter para o ponto intermediário (desfaz o aumento do orçamento de vendas)
+rollback to ajuste_parcial;
+
+#Confirmar a transação
+commit;
